@@ -2,6 +2,10 @@ import os
 import subprocess
 import logging
 import sys
+import pyautogui
+import platform
+import pyttsx3
+import time
 import asyncio
 from PIL import ImageGrab, Image, ImageTk, ImageDraw
 import pytesseract
@@ -33,48 +37,16 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Updated APP_MAPPINGS with more accurate paths and common applications
-APP_MAPPINGS = {
-    "notepad": "notepad.exe",
-    "calculator": "calc.exe",
-    "chrome": r"C:\Program Files\Google\Chrome\Application\chrome.exe",
-    "firefox": r"C:\Program Files\Mozilla Firefox\firefox.exe",
-    "vlc": r"C:\Program Files\VideoLAN\VLC\vlc.exe",
-    "command prompt": "cmd.exe",
-    "control panel": "control.exe",
-    "settings": "ms-settings:",
-    "paint": "mspaint.exe",
-    "task manager": "taskmgr.exe",
-    "vs code": r"C:\Users\Siddharth Shasane\AppData\Local\Programs\Microsoft VS Code\Code.exe",
-    "word": r"C:\Program Files\Microsoft Office\root\Office16\WINWORD.EXE",
-    "excel": r"C:\Program Files\Microsoft Office\root\Office16\EXCEL.EXE",
-    "powerpoint": r"C:\Program Files\Microsoft Office\root\Office16\POWERPNT.EXE",
-    "android studio": r"C:\Program Files\Android\Android Studio\bin\studio64.exe",
-    "visual studio": r"C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\devenv.exe"
-}
 
-async def find_app_path(app_title: str) -> str:
-    """Find the correct path for an application"""
-    app_title = app_title.lower().strip()
+
+
     
     # Check in APP_MAPPINGS first
-    if app_title in APP_MAPPINGS:
-        return APP_MAPPINGS[app_title]
+
     
     # Check common Program Files locations
-    common_paths = [
-        r"C:\Program Files",
-        r"C:\Program Files (x86)",
-        r"C:\Users\Siddharth Shasane\AppData\Local",
-        r"C:\Users\Siddharth Shasane\AppData\Roaming"
-    ]
-    
-    for base_path in common_paths:
-        for root, dirs, files in os.walk(base_path):
-            for file in files:
-                if app_title in file.lower() and file.endswith('.exe'):
-                    return os.path.join(root, file)
-    
-    return app_title
+
+
 
 # -------------------------
 # Global focus utility
@@ -164,23 +136,27 @@ async def delete_item(path):
 async def open(app_title: str) -> str:
     """Enhanced open function with better error handling and app detection"""
     try:
-        app_path = await find_app_path(app_title)
-        
-        # Try to launch the application
-        if os.path.isfile(app_path):
-            subprocess.Popen(app_path)
+        if platform.system() == "Windows":
+            pyautogui.press('win')
+            time.sleep(0.5)
+            pyautogui.write(app_title)
+            time.sleep(1)
+            pyautogui.press('enter')
+        elif platform.system() == "Darwin":
+            pyautogui.hotkey('command', 'space')
+            time.sleep(0.5)
+            pyautogui.write(app_title)
+            time.sleep(1)
+            pyautogui.press('enter')
+        elif platform.system() == "Linux":
+            pyautogui.press('super')
+            time.sleep(0.5)
+            pyautogui.write(app_title)
+            time.sleep(1)
+            pyautogui.press('enter')
         else:
-            subprocess.Popen(f'start "" "{app_path}"', shell=True)
-        
-        # Wait for window to appear
-        await asyncio.sleep(2)
-        
-        # Try to focus the window
-        focused = await focus_window(app_title)
-        if focused:
-            return f"✅ {app_title} successfully launched and focused"
-        else:
-            return f"⚠️ {app_title} launched but couldn't focus window"
+            print("Sorry, I can only open applications on Windows, macOS, or Linux (Ubuntu/Debian) for now.")
+            return False
             
     except Exception as e:
         return f"❌ Error launching {app_title}: {str(e)}"
