@@ -162,35 +162,43 @@ async def open(app_title: str) -> str:
         return f"❌ Error launching {app_title}: {str(e)}"
 
 @function_tool
-async def close(window_title: str) -> str:
-    """Enhanced close function with better window detection"""
-    if not win32gui:
-        return "❌ win32gui module not available"
+async def close(app_title: str) -> str:
+    # """Enhanced close function with better window detection"""
+    # if not win32gui:
+    #     return "❌ win32gui module not available"
 
-    closed = False
-    def enum_handler(hwnd, result):
-        nonlocal closed
-        if win32gui.IsWindowVisible(hwnd):
-            window_text = win32gui.GetWindowText(hwnd).lower()
-            if window_title.lower() in window_text:
+    # closed = False
+    # def enum_handler(hwnd, result):
+    #     nonlocal closed
+    #     if win32gui.IsWindowVisible(hwnd):
+    #         window_text = win32gui.GetWindowText(hwnd).lower()
+    #         if window_title.lower() in window_text:
                 try:
-                    win32gui.PostMessage(hwnd, win32con.WM_CLOSE, 0, 0)
-                    closed = True
+                    if platform.system() == "Windows" or platform.system() == "Linux":
+                        pyautogui.hotkey('alt', 'f4') # Standard close shortcut for Windows and many Linux environments
+                    elif platform.system() == "Darwin": # macOS
+                         pyautogui.hotkey('command', 'q') # Standard quit shortcut for macOS apps
+                    else:
+                        print("Sorry, I don't know how to close applications on this operating system.")
+                        return False
+                    
+                    print("Close command sent. Hope it worked!")
+                    return True
                 except Exception as e:
                     print(f"Error closing window: {e}")
 
-    try:
-        win32gui.EnumWindows(enum_handler, None)
-        if closed:
-            return f"✅ Successfully closed {window_title}"
-        else:
-            # Try alternative method using taskkill
-            subprocess.run(['taskkill', '/F', '/IM', f'{window_title}.exe'], 
-                         stdout=subprocess.DEVNULL, 
-                         stderr=subprocess.DEVNULL)
-            return f"✅ Attempted to force close {window_title}"
-    except Exception as e:
-        return f"❌ Error closing {window_title}: {str(e)}"
+    # try:
+    #     win32gui.EnumWindows(enum_handler, None)
+    #     if closed:
+    #         return f"✅ Successfully closed {window_title}"
+    #     else:
+    #         # Try alternative method using taskkill
+    #         subprocess.run(['taskkill', '/F', '/IM', f'{window_title}.exe'], 
+    #                      stdout=subprocess.DEVNULL, 
+    #                      stderr=subprocess.DEVNULL)
+    #         return f"✅ Attempted to force close {window_title}"
+    # except Exception as e:
+    #     return f"❌ Error closing {window_title}: {str(e)}"
 
 # phantom command logic
 @function_tool
