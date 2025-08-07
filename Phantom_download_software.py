@@ -72,6 +72,7 @@ async def extract_terms_conditions(url):
                 
         driver.quit()
         return "Terms and conditions not found"
+    
     except Exception as e:
         return f"Error extracting terms: {str(e)}"
 
