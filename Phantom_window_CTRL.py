@@ -68,6 +68,7 @@ async def focus_window(title_keyword: str) -> bool:
     return False
 
 # Index files/folders
+
 async def index_items(base_dirs):
     item_index = []
     for base_dir in base_dirs:
